@@ -1,0 +1,54 @@
+---
+title: "STAT 433 Week 3"
+author: "Zeyang Yu"
+date: "2022-09-26"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(nycflights13)
+library(ggplot2)
+library(tidyverse)
+```
+
+
+1.How many flights have a missing dep_time? What other variables are missing? What might these rows represent?
+
+```{r}
+summary(flights)
+```
+
+There are 8255 flights have a missing dep_time. Also, there are 8255 flights have a missing dep_delay, 8713 flights have a missing arr_time, 9430 flights have a missing arr_delay and 9430 flights have a missing air_time. Probably those flights were canceled or the data was lost. 
+
+
+2.Currently dep_time and sched_dep_time are convenient to look at, but hard to compute with because they’re not really continuous numbers. Convert them to a more convenient representation of number of minutes since midnight.
+
+```{r}
+mutate(flights,
+       dep_time = (dep_time %/% 100) * 60 + (dep_time %% 100),
+       sched_dep_time = (sched_dep_time %/% 100) * 60 + (sched_dep_time %% 100))
+```
+
+
+3.Look at the number of canceled flights per day. Is there a pattern? Is the proportion of canceled flights related to the average delay? Use multiple dyplr operations, all on one line, concluding with ggplot(aes(x= ,y=)) + geom_point()
+
+
+```{r}
+flights %>%
+  mutate(cancelled = (is.na(arr_delay) | is.na(dep_delay))) %>%
+  group_by(year, month, day) %>%
+  summarise(
+    cancelled_prop = mean(cancelled),
+    avg_dep_delay = mean(dep_delay, na.rm = TRUE),
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE)
+  ) %>%
+  ggplot(aes(x = avg_dep_delay, y = cancelled_prop)) +
+  geom_point()
+```
+According to the plot, with the increasing of average departure delay and
+and average arrival delay flights, the proportion of cancelled flights also increases. 
